@@ -1,0 +1,15 @@
+# dependencies
+/node_modules
+
+# Next.js build output
+/.next
+/out
+
+# local files
+.DS_Store
+*.log
+.env*
+
+# editor settings
+.idea
+.vscode

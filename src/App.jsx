@@ -26,6 +26,10 @@ import { mockTeams, typeConfig } from './mockTeams';
 
 const { Text, Title } = Typography;
 
+const BROKEN_IMAGE_FALLBACK = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" fill="#fafafa" stroke="#bfbfbf"/><path d="m6 17 4-4 3 3 2-2 3 3" fill="none" stroke="#8c8c8c" stroke-width="1.5"/><circle cx="15.5" cy="8.5" r="1.5" fill="#8c8c8c"/></svg>',
+)}`;
+
 const getLogoSet = (team, type) => {
   if (type === 'legacy') return team?.logos || {};
   if (type === 'light') return team?.logo_variants?.light_mode || {};
@@ -46,8 +50,10 @@ function LogoSizeCell({ team, type, size, active, pending, savedPreview }) {
             <Image
               src={src}
               alt={`${team.team_name} ${typeConfig[type].label} ${size.label} logo`}
-              width={27}
-              height={27}
+              width={24}
+              height={24}
+              fallback={BROKEN_IMAGE_FALLBACK}
+              style={{ width: 24, height: 24, objectFit: 'contain', display: 'block' }}
               preview={{ mask: <EyeOutlined className="logo-preview-eye" /> }}
             />
           ) : (

@@ -25,7 +25,8 @@ button, input { font: inherit; }
 .table-shell .ant-table { font-size: 13px; }
 .table-shell .ant-table-thead > tr > th { padding: 8px; text-align: center; font-size: 12px; font-weight: 600; border-bottom-color: #f0f0f0; background: #fafafa; }
 .table-shell .ant-table-thead > tr > th:first-child { text-align: left; }
-.table-shell .ant-table-tbody > tr > td { height: 50px; padding: 6px 8px; }
+.table-shell .ant-table-tbody > tr:not(.ant-table-expanded-row) { height: 50px; }
+.table-shell .ant-table-tbody > tr:not(.ant-table-expanded-row) > td { height: 50px; max-height: 50px; padding: 6px 8px; line-height: 1.2; }
 .table-shell .ant-table-tbody > tr:hover > td { background: #fafafa !important; }
 .table-shell .ant-table-expanded-row > td { padding: 0 !important; background: #fafafa !important; }
 .table-shell .ant-pagination { margin: 12px 20px 12px 0; }
@@ -39,13 +40,13 @@ button, input { font: inherit; }
 .matrix-logo-cell { display: grid; place-items: center; width: 40px; height: 40px; margin: 0 auto; border-radius: 6px; transition: background .15s ease; }
 .matrix-logo-cell:hover { background: #f0f0f0; }
 .matrix-logo-cell.is-active { background: #e6f4ff; }
-.logo-frame { width: 32px; height: 32px; display: grid; place-items: center; overflow: hidden; color: rgba(0, 0, 0, 0.25); font-size: 13px; border: 1px solid #d9d9d9; border-radius: 4px; background: #fff; }
+.logo-frame { width: 32px; min-width: 32px; max-width: 32px; height: 32px; min-height: 32px; max-height: 32px; display: grid; place-items: center; overflow: hidden; color: rgba(0, 0, 0, 0.25); font-size: 13px; line-height: 0; border: 1px solid #d9d9d9; border-radius: 4px; background: #fff; }
 .logo-frame.has-logo { cursor: zoom-in; }
 .logo-frame.dark-frame { background: #fafafa; }
 .logo-frame.is-missing { border-style: dashed; background: #fafafa; }
 .logo-frame.is-pending { border-color: #faad14; }
-.logo-frame img { width: 26px; height: 26px; object-fit: contain; }
-.logo-frame .ant-image { display: block; height: 26px; line-height: 0; }
+.logo-frame .ant-image { display: block !important; width: 24px !important; height: 24px !important; overflow: hidden; line-height: 0; }
+.logo-frame .ant-image-img { display: block !important; width: 24px !important; height: 24px !important; max-width: 24px !important; max-height: 24px !important; object-fit: contain !important; object-position: center !important; }
 .logo-frame .ant-image-mask { border-radius: 3px; background: rgba(0, 0, 0, .48); }
 .logo-frame .ant-image-mask-info { padding: 0; }
 .logo-preview-eye { color: #fff; font-size: 13px; }

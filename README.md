@@ -86,13 +86,15 @@ export default function TeamLogosPage({ teams }) {
 
 ```text
 app/
-  layout.js       # Root layout, metadata, global CSS
+  layout.js       # Demo root layout and metadata
   page.js         # Server-rendered route entry
   providers.js    # Ant Design client providers and SSR style registry
 src/
   App.jsx         # Interactive client component
+  modalStyles.js  # CSS string injected directly by the modal
   mockTeams.js    # Mock API-shaped team data
-  styles.css      # Demo styles
 ```
+
+The modal injects its own `<style>` element and does not require a global CSS import or App Router layout integration.
 
 > Next.js 14.2.25 is intentionally pinned for this demo. npm currently reports known security issues for this old release, so upgrade to a patched Next.js version before deploying publicly.

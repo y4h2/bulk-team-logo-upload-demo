@@ -23,6 +23,7 @@ import {
   Upload,
 } from 'antd';
 import { mockTeams, typeConfig } from './mockTeams';
+import { modalStyles } from './modalStyles';
 
 const { Text, Title } = Typography;
 
@@ -289,7 +290,9 @@ export function BulkTeamLogoUploadModal({
   ];
 
   return (
-    <Modal
+    <>
+      <style>{modalStyles}</style>
+      <Modal
       open={mounted && open}
       onCancel={onClose}
       width={1180}
@@ -357,7 +360,8 @@ export function BulkTeamLogoUploadModal({
         </div>
         <Button onClick={onClose}>Close</Button>
       </div>
-    </Modal>
+      </Modal>
+    </>
   );
 }
 

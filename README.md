@@ -29,7 +29,9 @@ npm start
 - Non-PNG files are rejected with an error message.
 - Every Legacy, Light, and Dark cell shows separate XL/L/M/S upload slots.
 - The UI represents backend resizing into the required XL/L/M/S outputs; Legacy XL maps to `logos.large_7_1`.
-- Pending uploads stay visible across rows until **Save uploads** is clicked.
+- Dropped files remain local and pending until that team's **Save** button is clicked.
+- On Save, Legacy/Light/Dark files for the team are passed to `resizeAndUpload` in parallel.
+- Returned S3 URLs replace the pending previews in the XL/L/M/S cells.
 
 ## Data shape
 
@@ -63,9 +65,20 @@ import { BulkTeamLogoUploadModal } from './src/App';
 export default function TeamLogosPage({ teams }) {
   const [open, setOpen] = useState(false);
 
-  const uploadLogos = async (uploads) => {
-    // uploads: [{ teamId, type: 'legacy' | 'light' | 'dark', file }]
-    // Call your upload API here.
+  const resizeAndUpload = async ({ file, mode, triCode }) => {
+    // Upload the PNG and return the generated S3 URLs.
+    return {
+      small: 'https://s3.example.com/logo-small.png',
+      medium: 'https://s3.example.com/logo-medium.png',
+      large: 'https://s3.example.com/logo-large.png',
+      xlarge: 'https://s3.example.com/logo-xlarge.png',
+    };
+  };
+
+  const saveTeamLogos = async (artifacts, team) => {
+    // Called only after every resize/upload for this team succeeds.
+    // artifacts: [{ teamId, type, file, urls, result }]
+    await updateTeamLogoUrls(team.id, artifacts);
   };
 
   return (
@@ -75,12 +88,15 @@ export default function TeamLogosPage({ teams }) {
         open={open}
         onClose={() => setOpen(false)}
         teams={teams}
-        onSave={uploadLogos}
+        resizeAndUpload={resizeAndUpload}
+        onSave={saveTeamLogos}
       />
     </>
   );
 }
 ```
+
+`mode` is mapped automatically to `legacy`, `light_mode`, or `dark_mode`. The URL result can be returned directly or under a `urls`/`logos` property. For Legacy, an `xlarge` result is mapped to the existing `logos.large_7_1` field.
 
 ## Project structure
 

@@ -57,10 +57,29 @@ const normalizeUploadedUrls = (result, type) => {
   };
 };
 
-function LogoSizeCell({ team, type, size, active, pending, savedLogos }) {
+const applyUploadedUrlsToTeam = (team, type, urls) => {
+  if (type === 'legacy') return { ...team, logos: urls };
+
+  return {
+    ...team,
+    logo_variants: {
+      ...team.logo_variants,
+      [uploadModeByType[type]]: urls,
+    },
+  };
+};
+
+const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => resolve(reader.result);
+  reader.onerror = () => reject(reader.error || new Error('Could not read the selected PNG.'));
+  reader.readAsDataURL(file);
+});
+
+function LogoSizeCell({ team, type, size, active, pending }) {
   const logos = getLogoSet(team, type);
-  const src = pending?.preview || savedLogos?.[size.key] || logos[size.key];
-  const status = pending ? 'Pending generation' : src ? 'Uploaded' : 'Missing';
+  const src = pending?.urls?.[size.key] || pending?.preview || logos[size.key];
+  const status = pending?.uploading ? 'Uploading' : pending ? 'Unsaved' : src ? 'Uploaded' : 'Missing';
 
   return (
     <Tooltip title={`${typeConfig[type].label} ${size.label}: ${status}`}>
@@ -90,25 +109,14 @@ function UploadEditor({
   selectedType,
   setSelectedType,
   pending,
-  setPending,
+  onUpload,
 }) {
   const beforeUpload = (file) => {
     if (file.type !== 'image/png') {
       window.dispatchEvent(new CustomEvent('logo-upload-error'));
       return Upload.LIST_IGNORE;
     }
-
-    const preview = URL.createObjectURL(file);
-    setPending((value) => ({
-      ...value,
-      [`${team.id}-${selectedType}`]: {
-        teamId: team.id,
-        type: selectedType,
-        file,
-        preview,
-      },
-    }));
-    return false;
+    return true;
   };
 
   return (
@@ -131,6 +139,8 @@ function UploadEditor({
           maxCount={1}
           showUploadList={false}
           beforeUpload={beforeUpload}
+          customRequest={(options) => onUpload(team, selectedType, options)}
+          disabled={pending?.uploading}
           className="logo-dragger"
         >
           <p className="ant-upload-drag-icon"><InboxOutlined /></p>
@@ -138,7 +148,11 @@ function UploadEditor({
             {pending ? pending.file.name : 'Drop PNG here'}
           </p>
           <p className="upload-hint">
-            {pending ? `${typeConfig[selectedType].label} PNG selected` : 'or click to choose a PNG file'}
+            {pending?.uploading
+              ? 'Uploading to S3 and generating sizes…'
+              : pending
+                ? 'S3 URLs ready — save this team to apply'
+                : 'or click to choose a PNG file'}
           </p>
         </Upload.Dragger>
       </div>
@@ -159,12 +173,16 @@ export function BulkTeamLogoUploadModal({
   const [selectedType, setSelectedType] = useState('legacy');
   const [pending, setPending] = useState({});
   const [savingTeamId, setSavingTeamId] = useState(null);
-  const [savedLogos, setSavedLogos] = useState({});
+  const [draftTeams, setDraftTeams] = useState(teams);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    setDraftTeams(teams);
+  }, [teams]);
 
   useEffect(() => {
     const onError = () => message.error('Please select a PNG file. Other formats are not accepted.');
@@ -174,11 +192,11 @@ export function BulkTeamLogoUploadModal({
 
   const filteredTeams = useMemo(() => {
     const keyword = searchText.trim().toLowerCase();
-    if (!keyword) return teams;
-    return teams.filter(
+    if (!keyword) return draftTeams;
+    return draftTeams.filter(
       (team) => team.team_name.toLowerCase().includes(keyword) || team.tri_code.toLowerCase().includes(keyword),
     );
-  }, [searchText, teams]);
+  }, [searchText, draftTeams]);
 
   const pendingCount = Object.keys(pending).length;
 
@@ -187,52 +205,78 @@ export function BulkTeamLogoUploadModal({
     setExpandedTeamId((current) => (current === teamId && selectedType === type ? null : teamId));
   };
 
+  const uploadDroppedLogo = async (team, type, { file, onSuccess, onError }) => {
+    const key = `${team.id}-${type}`;
+    const preview = URL.createObjectURL(file);
+
+    setPending((value) => ({
+      ...value,
+      [key]: {
+        teamId: team.id,
+        type,
+        file,
+        preview,
+        uploading: true,
+      },
+    }));
+
+    try {
+      let result;
+      if (resizeAndUpload) {
+        result = await resizeAndUpload({
+          file,
+          mode: uploadModeByType[type],
+          triCode: team.tri_code,
+        });
+      } else {
+        const dataUrl = await readFileAsDataUrl(file);
+        await new Promise((resolve) => setTimeout(resolve, 700));
+        result = { small: dataUrl, medium: dataUrl, large: dataUrl, xlarge: dataUrl };
+      }
+
+      const urls = normalizeUploadedUrls(result, type);
+      const artifact = {
+        teamId: team.id,
+        type,
+        file,
+        urls,
+        result,
+        uploading: false,
+      };
+
+      setDraftTeams((value) => value.map((item) => (
+        String(item.id) === String(team.id) ? applyUploadedUrlsToTeam(item, type, urls) : item
+      )));
+      setPending((value) => ({ ...value, [key]: artifact }));
+      URL.revokeObjectURL(preview);
+      onSuccess(result);
+    } catch (error) {
+      URL.revokeObjectURL(preview);
+      setPending((value) => {
+        const next = { ...value };
+        delete next[key];
+        return next;
+      });
+      console.error(error);
+      message.error(`${typeConfig[type].label} logo upload failed. Please try again.`);
+      onError(error);
+    }
+  };
+
   const saveTeam = async (team) => {
     const teamEntries = Object.entries(pending).filter(([, value]) => String(value.teamId) === String(team.id));
     if (!teamEntries.length) return message.info('Choose at least one PNG for this team.');
+    if (teamEntries.some(([, value]) => value.uploading)) return message.info('Wait for the S3 upload to finish.');
 
     setSavingTeamId(team.id);
 
     try {
-      const artifacts = await Promise.all(
-        teamEntries.map(async ([key, upload]) => {
-          const result = resizeAndUpload
-            ? await resizeAndUpload({
-                file: upload.file,
-                mode: uploadModeByType[upload.type],
-                triCode: team.tri_code,
-              })
-            : {
-                small: upload.preview,
-                medium: upload.preview,
-                large: upload.preview,
-                xlarge: upload.preview,
-              };
+      const artifacts = teamEntries.map(([key, upload]) => ({ key, ...upload }));
+      if (onSave) await onSave(team, artifacts);
 
-          return {
-            key,
-            teamId: upload.teamId,
-            type: upload.type,
-            file: upload.file,
-            urls: normalizeUploadedUrls(result, upload.type),
-            result,
-          };
-        }),
-      );
-
-      if (onSave) await onSave(artifacts, team);
-
-      setSavedLogos((value) => {
-        const next = { ...value };
-        artifacts.forEach(({ key, urls }) => { next[key] = urls; });
-        return next;
-      });
       setPending((value) => {
         const next = { ...value };
-        teamEntries.forEach(([key, upload]) => {
-          URL.revokeObjectURL(upload.preview);
-          delete next[key];
-        });
+        teamEntries.forEach(([key]) => { delete next[key]; });
         return next;
       });
       message.success(`${artifacts.length} logo ${artifacts.length === 1 ? 'upload' : 'uploads'} saved for this team.`);
@@ -275,7 +319,6 @@ export function BulkTeamLogoUploadModal({
               type={type}
               size={size}
               pending={pending[`${team.id}-${type}`]}
-              savedLogos={savedLogos[`${team.id}-${type}`]}
               active={expandedTeamId === team.id && selectedType === type}
             />
           ),
@@ -314,13 +357,16 @@ export function BulkTeamLogoUploadModal({
         const teamPendingCount = Object.values(pending).filter(
           (value) => String(value.teamId) === String(team.id),
         ).length;
+        const teamIsUploading = Object.values(pending).some(
+          (value) => String(value.teamId) === String(team.id) && value.uploading,
+        );
 
         return (
           <Button
             type="primary"
             size="small"
             loading={String(savingTeamId) === String(team.id)}
-            disabled={!teamPendingCount}
+            disabled={!teamPendingCount || teamIsUploading}
             onClick={() => saveTeam(team)}
           >
             Save
@@ -388,7 +434,7 @@ export function BulkTeamLogoUploadModal({
                 selectedType={selectedType}
                 setSelectedType={setSelectedType}
                 pending={pending[`${team.id}-${selectedType}`]}
-                setPending={setPending}
+                onUpload={uploadDroppedLogo}
               />
             ),
           }}

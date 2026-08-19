@@ -29,9 +29,9 @@ npm start
 - Non-PNG files are rejected with an error message.
 - Every Legacy, Light, and Dark cell shows separate XL/L/M/S upload slots.
 - The UI represents backend resizing into the required XL/L/M/S outputs; Legacy XL maps to `logos.large_7_1`.
-- Dropped files remain local and pending until that team's **Save** button is clicked.
-- On Save, Legacy/Light/Dark files for the team are passed to `resizeAndUpload` in parallel.
-- Returned S3 URLs replace the pending previews in the XL/L/M/S cells.
+- Dropping a PNG immediately calls `resizeAndUpload` for that team and logo type.
+- Returned S3 URLs are written into the frontend team draft and displayed in the XL/L/M/S cells.
+- The team's **Save** button only persists the already-updated team object to the backend.
 
 ## Data shape
 
@@ -75,10 +75,13 @@ export default function TeamLogosPage({ teams }) {
     };
   };
 
-  const saveTeamLogos = async (artifacts, team) => {
-    // Called only after every resize/upload for this team succeeds.
+  const saveTeamLogos = async (team, artifacts) => {
+    // resizeAndUpload already ran when each PNG was dropped.
     // artifacts: [{ teamId, type, file, urls, result }]
-    await updateTeamLogoUrls(team.id, artifacts);
+    await updateTeam(team.id, {
+      logos: team.logos,
+      logo_variants: team.logo_variants,
+    });
   };
 
   return (
@@ -96,7 +99,7 @@ export default function TeamLogosPage({ teams }) {
 }
 ```
 
-`mode` is mapped automatically to `legacy`, `light_mode`, or `dark_mode`. The URL result can be returned directly or under a `urls`/`logos` property. For Legacy, an `xlarge` result is mapped to the existing `logos.large_7_1` field.
+`mode` is mapped automatically to `legacy`, `light_mode`, or `dark_mode`. The URL result can be returned directly or under a `urls`/`logos` property. For Legacy, an `xlarge` result is mapped to the existing `logos.large_7_1` field. If the upload fails, the team draft is not changed and the user can drop the PNG again.
 
 ## Project structure
 

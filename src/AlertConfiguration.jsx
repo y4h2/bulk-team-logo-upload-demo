@@ -38,9 +38,24 @@ export const ALERT_TYPES = [
   },
 ];
 
-const getLeagueId = (league) => league.id ?? league.league_id ?? league.leagueId ?? league.code;
-const getLeagueCode = (league) => league.code ?? league.league_code ?? league.leagueCode ?? '-';
-const getLeagueName = (league) => league.name ?? league.league_name ?? league.leagueName ?? getLeagueCode(league);
+const getLeagueId = (league) => (
+  league.sn_league_id ?? league.id ?? league.league_id ?? league.leagueId ?? league.league_be_code
+);
+const getLeagueCode = (league) => (
+  league.league_be_code
+  ?? league.league_short_name
+  ?? league.code
+  ?? league.league_code
+  ?? league.leagueCode
+  ?? '-'
+);
+const getLeagueName = (league) => (
+  league.league_display_name
+  ?? league.league_name
+  ?? league.name
+  ?? league.leagueName
+  ?? getLeagueCode(league)
+);
 const isLeagueActive = (league) => league.active ?? league.is_active ?? league.enabled ?? true;
 
 const parseAlertConfig = (value) => {
@@ -132,7 +147,8 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
     return draftLeagues.filter((league) => {
       const matchesSearch = !keyword
         || String(getLeagueName(league)).toLowerCase().includes(keyword)
-        || String(getLeagueCode(league)).toLowerCase().includes(keyword);
+        || String(getLeagueCode(league)).toLowerCase().includes(keyword)
+        || String(league.league_short_name ?? '').toLowerCase().includes(keyword);
       const active = isLeagueActive(league);
       const matchesStatus = status === 'all'
         || (status === 'active' && active)
@@ -161,7 +177,7 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
   const saveChanges = async () => {
     const changedLeagues = draftLeagues.filter((league) => changedLeagueKeys.has(league._key));
     const payload = changedLeagues.map((league) => ({
-      id: getLeagueId(league),
+      sn_league_id: getLeagueId(league),
       alert_config: copyAlertConfig(league._alertConfig),
     }));
 

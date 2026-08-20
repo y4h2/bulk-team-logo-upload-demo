@@ -29,6 +29,7 @@ npm start
 - Switch ON explicitly means that alert generation is bypassed.
 - Dirty league count, reset, and save controls.
 - `null`, missing, object, array, and JSON-string `alert_config` values are normalized once at the component boundary.
+- League fixtures follow the real `sn_league_id`, `league_display_name`, `league_short_name`, `league_be_code`, and `active` field names.
 - Save computes only changed leagues. Because this demo has no update API, it logs the intended payload at a scoped TODO instead of inventing an endpoint.
 
 ## Bulk logo demo behavior

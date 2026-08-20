@@ -110,10 +110,10 @@ app/
   providers.js    # Ant Design client providers and SSR style registry
 src/
   App.jsx         # Interactive client component
-  modalStyles.js  # CSS string injected directly by the modal
+  BulkTeamLogoUploadModal.module.css # Locally scoped modal styles
   mockTeams.js    # Mock API-shaped team data
 ```
 
-The modal injects its own `<style>` element and does not require a global CSS import or App Router layout integration.
+The modal imports a locally scoped CSS Module and does not require a global CSS import or App Router layout integration. Ant Design internals are targeted with scoped `:global(...)` selectors.
 
 > Next.js 14.2.25 is intentionally pinned for this demo. npm currently reports known security issues for this old release, so upgrade to a patched Next.js version before deploying publicly.

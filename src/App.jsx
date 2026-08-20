@@ -11,10 +11,10 @@ import {
   SearchOutlined,
 } from '@ant-design/icons';
 import {
-  App as AntApp,
   Button,
   Image,
   Input,
+  message as antdMessage,
   Modal,
   Segmented,
   Table,
@@ -23,7 +23,7 @@ import {
   Upload,
 } from 'antd';
 import { mockTeams, typeConfig } from './mockTeams';
-import { modalStyles } from './modalStyles';
+import styles from './BulkTeamLogoUploadModal.module.css';
 
 const { Text, Title } = Typography;
 
@@ -83,8 +83,8 @@ function LogoSizeCell({ team, type, size, active, pending }) {
 
   return (
     <Tooltip title={`${typeConfig[type].label} ${size.label}: ${status}`}>
-      <span className={`matrix-logo-cell ${active ? 'is-active' : ''}`}>
-        <span className={`logo-frame ${type === 'dark' ? 'dark-frame' : ''} ${src ? 'has-logo' : 'is-missing'} ${pending ? 'is-pending' : ''}`}>
+      <span className={`${styles.matrixLogoCell} ${active ? styles.isActive : ''}`}>
+        <span className={`${styles.logoFrame} ${type === 'dark' ? styles.darkFrame : ''} ${src ? styles.hasLogo : styles.isMissing} ${pending ? styles.isPending : ''}`}>
           {src ? (
             <Image
               src={src}
@@ -93,7 +93,7 @@ function LogoSizeCell({ team, type, size, active, pending }) {
               height={24}
               fallback={BROKEN_IMAGE_FALLBACK}
               style={{ width: 24, height: 24, objectFit: 'contain', display: 'block' }}
-              preview={{ mask: <EyeOutlined className="logo-preview-eye" /> }}
+              preview={{ mask: <EyeOutlined className={styles.logoPreviewEye} /> }}
             />
           ) : (
             <FileImageOutlined aria-label="Missing logo" />
@@ -120,10 +120,10 @@ function UploadEditor({
   };
 
   return (
-    <div className="inline-editor">
-      <div className="editor-topline">
+    <div className={styles.inlineEditor}>
+      <div className={styles.editorTopline}>
         <div>
-          <Text className="eyebrow">EDITING</Text>
+          <Text className={styles.eyebrow}>EDITING</Text>
           <Title level={5}>{team.team_name} assets</Title>
         </div>
         <Segmented
@@ -133,7 +133,7 @@ function UploadEditor({
         />
       </div>
 
-      <div className="compact-upload-row">
+      <div className={styles.compactUploadRow}>
         <Upload.Dragger
           accept="image/png"
           maxCount={1}
@@ -141,13 +141,13 @@ function UploadEditor({
           beforeUpload={beforeUpload}
           customRequest={(options) => onUpload(team, selectedType, options)}
           disabled={pending?.uploading}
-          className="logo-dragger"
+          className={styles.logoDragger}
         >
-          <p className="ant-upload-drag-icon"><InboxOutlined /></p>
-          <p className="upload-title" title={pending?.file.name}>
+          <p className={styles.dragIcon}><InboxOutlined /></p>
+          <p className={styles.uploadTitle} title={pending?.file.name}>
             {pending ? pending.file.name : 'Drop PNG here'}
           </p>
-          <p className="upload-hint">
+          <p className={styles.uploadHint}>
             {pending?.uploading
               ? 'Uploading to S3 and generating sizes…'
               : pending
@@ -167,7 +167,7 @@ export function BulkTeamLogoUploadModal({
   resizeAndUpload,
   onSave,
 }) {
-  const { message } = AntApp.useApp();
+  const [messageApi, messageContextHolder] = antdMessage.useMessage();
   const [searchText, setSearchText] = useState('');
   const [expandedTeamId, setExpandedTeamId] = useState(null);
   const [selectedType, setSelectedType] = useState('legacy');
@@ -185,10 +185,10 @@ export function BulkTeamLogoUploadModal({
   }, [teams]);
 
   useEffect(() => {
-    const onError = () => message.error('Please select a PNG file. Other formats are not accepted.');
+    const onError = () => messageApi.error('Please select a PNG file. Other formats are not accepted.');
     window.addEventListener('logo-upload-error', onError);
     return () => window.removeEventListener('logo-upload-error', onError);
-  }, [message]);
+  }, [messageApi]);
 
   const filteredTeams = useMemo(() => {
     const keyword = searchText.trim().toLowerCase();
@@ -258,15 +258,15 @@ export function BulkTeamLogoUploadModal({
         return next;
       });
       console.error(error);
-      message.error(`${typeConfig[type].label} logo upload failed. Please try again.`);
+      messageApi.error(`${typeConfig[type].label} logo upload failed. Please try again.`);
       onError(error);
     }
   };
 
   const saveTeam = async (team) => {
     const teamEntries = Object.entries(pending).filter(([, value]) => String(value.teamId) === String(team.id));
-    if (!teamEntries.length) return message.info('Choose at least one PNG for this team.');
-    if (teamEntries.some(([, value]) => value.uploading)) return message.info('Wait for the S3 upload to finish.');
+    if (!teamEntries.length) return messageApi.info('Choose at least one PNG for this team.');
+    if (teamEntries.some(([, value]) => value.uploading)) return messageApi.info('Wait for the S3 upload to finish.');
 
     setSavingTeamId(team.id);
 
@@ -279,10 +279,10 @@ export function BulkTeamLogoUploadModal({
         teamEntries.forEach(([key]) => { delete next[key]; });
         return next;
       });
-      message.success(`${artifacts.length} logo ${artifacts.length === 1 ? 'upload' : 'uploads'} saved for this team.`);
+      messageApi.success(`${artifacts.length} logo ${artifacts.length === 1 ? 'upload' : 'uploads'} saved for this team.`);
     } catch (error) {
       console.error(error);
-      message.error('The uploads could not be saved. Please try again.');
+      messageApi.error('The uploads could not be saved. Please try again.');
     } finally {
       setSavingTeamId(null);
     }
@@ -295,16 +295,16 @@ export function BulkTeamLogoUploadModal({
       width: 220,
       fixed: 'left',
       render: (_, team) => (
-        <div className="team-cell">
+        <div className={styles.teamCell}>
           <div>
-            <div className="team-name">{team.team_name}</div>
-            <div className="team-meta">{team.tri_code}</div>
+            <div className={styles.teamName}>{team.team_name}</div>
+            <div className={styles.teamMeta}>{team.tri_code}</div>
           </div>
         </div>
       ),
     },
     ...['legacy', 'light', 'dark'].map((type) => ({
-      title: <span className={`group-title group-${type}`}>{typeConfig[type].label.toUpperCase()}</span>,
+      title: <span className={styles.groupTitle}>{typeConfig[type].label.toUpperCase()}</span>,
       key: type,
       children: [
         ...typeConfig[type].sizes.map((size, index) => ({
@@ -312,7 +312,7 @@ export function BulkTeamLogoUploadModal({
           key: `${type}-${size.key}`,
           width: 52,
           align: 'center',
-          className: index === 0 ? 'size-column group-start' : 'size-column',
+          className: index === 0 ? styles.groupStart : undefined,
           render: (_, team) => (
             <LogoSizeCell
               team={team}
@@ -328,13 +328,13 @@ export function BulkTeamLogoUploadModal({
           key: `${type}-expand`,
           width: 34,
           align: 'center',
-          className: 'group-toggle-column',
+          className: styles.groupToggleColumn,
           render: (_, team) => {
             const active = expandedTeamId === team.id && selectedType === type;
             return (
               <Tooltip title={`${active ? 'Close' : 'Upload'} ${typeConfig[type].label} logo`}>
                 <button
-                  className={`group-toggle ${active ? 'is-active' : ''}`}
+                  className={`${styles.groupToggle} ${active ? styles.isActive : ''}`}
                   onClick={() => openEditor(team.id, type)}
                   aria-label={`${active ? 'Close' : 'Open'} ${typeConfig[type].label} upload for ${team.team_name}`}
                 >
@@ -352,7 +352,7 @@ export function BulkTeamLogoUploadModal({
       width: 88,
       align: 'center',
       fixed: 'right',
-      className: 'team-action-column',
+      className: styles.teamActionColumn,
       render: (_, team) => {
         const teamPendingCount = Object.values(pending).filter(
           (value) => String(value.teamId) === String(team.id),
@@ -378,41 +378,41 @@ export function BulkTeamLogoUploadModal({
 
   return (
     <>
-      <style>{modalStyles}</style>
+      {messageContextHolder}
       <Modal
       open={mounted && open}
       onCancel={onClose}
       width={1180}
       centered
-      className="bulk-modal"
+      className={styles.bulkModal}
       closeIcon={<CloseOutlined />}
       title={null}
       footer={null}
       destroyOnClose={false}
     >
-      <div className="modal-header">
+      <div className={styles.modalHeader}>
         <div>
           <Title level={4}>Bulk Team Logo Upload</Title>
           <Text>Fetch latest league and bound teams before processing files.</Text>
-          <div className="snapshot-meta">
+          <div className={styles.snapshotMeta}>
             <span>Current snapshot teams: {teams.length}</span>
             <span>League: —</span>
           </div>
         </div>
       </div>
 
-      <div className="toolbar">
+      <div className={styles.toolbar}>
         <Input
           prefix={<SearchOutlined />}
           allowClear
           value={searchText}
           onChange={(event) => setSearchText(event.target.value)}
           placeholder="Search team name or code…"
-          className="team-search"
+          className={styles.teamSearch}
         />
       </div>
 
-      <div className="table-shell">
+      <div className={styles.tableShell}>
         <Table
           rowKey="id"
           columns={columns}
@@ -424,7 +424,7 @@ export function BulkTeamLogoUploadModal({
             showTotal: (total) => `${total} teams`,
           }}
           scroll={{ x: 1090, y: '55vh' }}
-          locale={{ emptyText: <div className="empty-search">No team matches “{searchText}”</div> }}
+          locale={{ emptyText: <div className={styles.emptySearch}>No team matches “{searchText}”</div> }}
           expandable={{
             showExpandColumn: false,
             expandedRowKeys: expandedTeamId ? [expandedTeamId] : [],
@@ -441,8 +441,8 @@ export function BulkTeamLogoUploadModal({
         />
       </div>
 
-      <div className="modal-footer">
-        <div className="save-summary">
+      <div className={styles.modalFooter}>
+        <div className={styles.saveSummary}>
           {pendingCount ? <><b>{pendingCount}</b> unsaved {pendingCount === 1 ? 'change' : 'changes'}</> : 'No pending uploads'}
         </div>
         <Button onClick={onClose}>Close</Button>
@@ -456,7 +456,7 @@ export default function App() {
   const [open, setOpen] = useState(true);
 
   return (
-    <main className="demo-shell">
+    <main className={styles.demoShell}>
       <Button type="primary" icon={<CloudUploadOutlined />} onClick={() => setOpen(true)}>
         Open bulk uploader
       </Button>

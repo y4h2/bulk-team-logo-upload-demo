@@ -38,26 +38,6 @@ export const ALERT_TYPES = [
   },
 ];
 
-const getLeagueId = (league) => (
-  league.sn_league_id ?? league.id ?? league.league_id ?? league.leagueId ?? league.league_be_code
-);
-const getLeagueCode = (league) => (
-  league.league_be_code
-  ?? league.league_short_name
-  ?? league.code
-  ?? league.league_code
-  ?? league.leagueCode
-  ?? '-'
-);
-const getLeagueName = (league) => (
-  league.league_display_name
-  ?? league.league_name
-  ?? league.name
-  ?? league.leagueName
-  ?? getLeagueCode(league)
-);
-const isLeagueActive = (league) => league.active ?? league.is_active ?? league.enabled ?? true;
-
 const parseAlertConfig = (value) => {
   if (!value) return {};
 
@@ -86,9 +66,9 @@ const copyAlertConfig = (config) => Object.fromEntries(
   ]),
 );
 
-const normalizeLeagues = (leagues) => leagues.map((league, index) => ({
+const normalizeLeagues = (leagues) => leagues.map((league) => ({
   ...league,
-  _key: String(getLeagueId(league) ?? `league-${index}`),
+  _key: String(league.sn_league_id),
   _alertConfig: copyAlertConfig(parseAlertConfig(league.alert_config)),
 }));
 
@@ -146,13 +126,12 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
 
     return draftLeagues.filter((league) => {
       const matchesSearch = !keyword
-        || String(getLeagueName(league)).toLowerCase().includes(keyword)
-        || String(getLeagueCode(league)).toLowerCase().includes(keyword)
-        || String(league.league_short_name ?? '').toLowerCase().includes(keyword);
-      const active = isLeagueActive(league);
+        || league.league_display_name.toLowerCase().includes(keyword)
+        || league.league_be_code.toLowerCase().includes(keyword)
+        || league.league_short_name.toLowerCase().includes(keyword);
       const matchesStatus = status === 'all'
-        || (status === 'active' && active)
-        || (status === 'inactive' && !active);
+        || (status === 'active' && league.active)
+        || (status === 'inactive' && !league.active);
 
       return matchesSearch && matchesStatus;
     });
@@ -177,7 +156,7 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
   const saveChanges = async () => {
     const changedLeagues = draftLeagues.filter((league) => changedLeagueKeys.has(league._key));
     const payload = changedLeagues.map((league) => ({
-      sn_league_id: getLeagueId(league),
+      sn_league_id: league.sn_league_id,
       alert_config: copyAlertConfig(league._alertConfig),
     }));
 
@@ -210,23 +189,24 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
       title: 'LEAGUE',
       key: 'league',
       width: 300,
-      sorter: (a, b) => String(getLeagueName(a)).localeCompare(String(getLeagueName(b))),
-      render: (_, league) => <Text strong>{getLeagueName(league)}</Text>,
+      sorter: (a, b) => a.league_display_name.localeCompare(b.league_display_name),
+      render: (_, league) => <Text strong>{league.league_display_name}</Text>,
     },
     {
       title: 'LEAGUE CODE',
       key: 'code',
       width: 150,
-      render: (_, league) => <Text code>{getLeagueCode(league)}</Text>,
+      render: (_, league) => <Text code>{league.league_be_code}</Text>,
     },
     {
       title: 'STATUS',
       key: 'status',
       width: 130,
-      render: (_, league) => {
-        const active = isLeagueActive(league);
-        return <Tag color={active ? 'success' : 'default'}>{active ? 'Active' : 'Inactive'}</Tag>;
-      },
+      render: (_, league) => (
+        <Tag color={league.active ? 'success' : 'default'}>
+          {league.active ? 'Active' : 'Inactive'}
+        </Tag>
+      ),
     },
     {
       title: 'BYPASS ALERT TYPES',
@@ -246,7 +226,7 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
             onChange={(checked) => toggleBypass(league._key, alertType.key, checked)}
             checkedChildren="Bypass"
             unCheckedChildren="Alert"
-            aria-label={`${alertType.label} for ${getLeagueName(league)}: switch on to bypass`}
+            aria-label={`${alertType.label} for ${league.league_display_name}: switch on to bypass`}
           />
         ),
       })),

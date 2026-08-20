@@ -102,7 +102,7 @@ const hasConfigChanged = (current, original) => ALERT_TYPES.some(
 export default function AlertConfiguration({ leagues = [], onSave }) {
   const { message } = AntApp.useApp();
   const [searchText, setSearchText] = useState('');
-  const [status, setStatus] = useState('all');
+  const [sportType, setSportType] = useState('all');
   const [draftLeagues, setDraftLeagues] = useState(() => normalizeLeagues(leagues));
   const [savedLeagues, setSavedLeagues] = useState(() => normalizeLeagues(leagues));
   const [saving, setSaving] = useState(false);
@@ -122,6 +122,13 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
       .map((league) => league._key),
   ), [draftLeagues, savedLeagues]);
 
+  const sportTypeOptions = useMemo(() => [
+    { label: 'All sports', value: 'all' },
+    ...Array.from(new Set(draftLeagues.map((league) => league.sport_type)))
+      .sort((a, b) => a.localeCompare(b))
+      .map((value) => ({ label: value, value })),
+  ], [draftLeagues]);
+
   const filteredLeagues = useMemo(() => {
     const keyword = searchText.trim().toLowerCase();
 
@@ -130,13 +137,11 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
         || league.league_display_name.toLowerCase().includes(keyword)
         || league.league_be_code.toLowerCase().includes(keyword)
         || league.league_short_name.toLowerCase().includes(keyword);
-      const matchesStatus = status === 'all'
-        || (status === 'active' && league.active)
-        || (status === 'inactive' && !league.active);
+      const matchesSportType = sportType === 'all' || league.sport_type === sportType;
 
-      return matchesSearch && matchesStatus;
+      return matchesSearch && matchesSportType;
     });
-  }, [draftLeagues, searchText, status]);
+  }, [draftLeagues, searchText, sportType]);
 
   const toggleBypass = (leagueKey, alertType, checked) => {
     setDraftLeagues((current) => current.map((league) => (
@@ -214,13 +219,12 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
       render: (_, league) => league.league_display_name,
     },
     {
-      title: 'STATUS',
-      key: 'status',
+      title: 'SPORT TYPE',
+      key: 'sportType',
       width: 130,
+      sorter: (a, b) => a.sport_type.localeCompare(b.sport_type),
       render: (_, league) => (
-        <Tag color={league.active ? 'success' : 'default'}>
-          {league.active ? 'Active' : 'Inactive'}
-        </Tag>
+        <Tag color="blue">{league.sport_type}</Tag>
       ),
     },
     {
@@ -270,14 +274,10 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
               className={styles.search}
             />
             <Select
-              value={status}
-              onChange={setStatus}
+              value={sportType}
+              onChange={setSportType}
               className={styles.filter}
-              options={[
-                { label: 'All statuses', value: 'all' },
-                { label: 'Active', value: 'active' },
-                { label: 'Inactive', value: 'inactive' },
-              ]}
+              options={sportTypeOptions}
             />
           </Space>
 

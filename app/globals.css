@@ -1,0 +1,130 @@
+body {
+  margin: 0;
+  background: #f5f5f5;
+}
+
+.alerts-page {
+  min-height: 100vh;
+  padding: 32px clamp(20px, 4vw, 56px) 56px;
+  background: #f5f5f5;
+}
+
+.page-heading {
+  max-width: 1400px;
+  margin: 0 auto 8px;
+}
+
+.page-heading h2 {
+  margin: 0 0 4px !important;
+  font-size: 28px;
+}
+
+.page-tabs {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-tabs > .ant-tabs-nav {
+  margin-bottom: 20px;
+}
+
+.page-tabs > .ant-tabs-nav::before {
+  border-color: #d9d9d9;
+}
+
+.alerts-card,
+.configuration-card {
+  overflow: hidden;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.alerts-toolbar,
+.configuration-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.alert-search,
+.league-search {
+  width: 320px;
+}
+
+.alert-status-filter,
+.status-filter {
+  width: 160px;
+}
+
+.alert-configuration > .ant-alert {
+  margin-bottom: 16px;
+}
+
+.configuration-card .ant-table {
+  font-size: 13px;
+}
+
+.configuration-card .ant-table-thead > tr > th {
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #fafafa;
+}
+
+.configuration-card .ant-table-thead > tr:first-child > th:not(:last-child) {
+  text-align: left;
+}
+
+.configuration-card .ant-table-tbody > tr > td {
+  padding: 12px 16px;
+}
+
+.configuration-card .ant-pagination {
+  margin-right: 16px;
+}
+
+.league-name {
+  color: rgba(0, 0, 0, 0.88);
+  font-weight: 500;
+}
+
+.alert-type-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.alert-type-heading .ant-typography {
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.dirty-indicator {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 12px;
+}
+
+.dirty-indicator.is-dirty {
+  color: #d46b08;
+}
+
+@media (max-width: 760px) {
+  .alerts-page {
+    padding: 20px 12px 40px;
+  }
+
+  .alerts-toolbar,
+  .configuration-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .alert-search,
+  .league-search {
+    width: min(100%, 320px);
+  }
+}

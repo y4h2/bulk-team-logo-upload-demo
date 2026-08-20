@@ -116,13 +116,13 @@ export default function TeamLogosPage({ teams }) {
 
 ```text
 app/
-  globals.css     # Alerts page styles
   layout.js       # Demo root layout and metadata
   page.js         # Server-rendered route entry
   providers.js    # Ant Design client providers and SSR style registry
 src/
   AlertConfiguration.jsx # Reusable league alert-bypass editor
   AlertsPage.jsx  # Alerts page tabs and demo alert table
+  alerts.module.css # Minimal responsive page/control sizing
   App.jsx         # Original bulk logo uploader component
   modalStyles.js  # Bulk uploader CSS string
   mockAlerts.js   # API-shaped alert and league fixtures

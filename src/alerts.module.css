@@ -1,0 +1,28 @@
+.page {
+  min-height: 100vh;
+  padding: 32px clamp(20px, 4vw, 56px) 56px;
+  background: #f5f5f5;
+}
+
+.content {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.search {
+  width: 320px;
+}
+
+.filter {
+  width: 160px;
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding: 20px 12px 40px;
+  }
+
+  .search {
+    width: min(100%, 320px);
+  }
+}

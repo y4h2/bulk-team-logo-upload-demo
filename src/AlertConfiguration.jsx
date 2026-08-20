@@ -11,6 +11,8 @@ import {
   Alert,
   App as AntApp,
   Button,
+  Card,
+  Flex,
   Input,
   Select,
   Space,
@@ -19,6 +21,7 @@ import {
   Tag,
   Typography,
 } from 'antd';
+import styles from './alerts.module.css';
 
 const { Text } = Typography;
 
@@ -192,7 +195,7 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
       key: 'league',
       width: 300,
       sorter: (a, b) => String(getLeagueName(a)).localeCompare(String(getLeagueName(b))),
-      render: (_, league) => <span className="league-name">{getLeagueName(league)}</span>,
+      render: (_, league) => <Text strong>{getLeagueName(league)}</Text>,
     },
     {
       title: 'LEAGUE CODE',
@@ -213,10 +216,10 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
       title: 'BYPASS ALERT TYPES',
       children: ALERT_TYPES.map((alertType) => ({
         title: (
-          <div className="alert-type-heading">
+          <Space direction="vertical" size={0}>
             <span>{alertType.label}</span>
-            <Text type="secondary">{alertType.description}</Text>
-          </div>
+            <Text type="secondary" style={{ fontSize: 11 }}>{alertType.description}</Text>
+          </Space>
         ),
         key: alertType.key,
         width: 210,
@@ -235,7 +238,7 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
   ];
 
   return (
-    <div className="alert-configuration">
+    <Flex vertical gap="middle">
       <Alert
         showIcon
         icon={<InfoCircleOutlined />}
@@ -244,8 +247,8 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
         description="A bypassed alert is not generated for that league. Switch OFF to keep alerting enabled."
       />
 
-      <div className="configuration-card">
-        <div className="configuration-toolbar">
+      <Card styles={{ body: { padding: 0 } }}>
+        <Flex align="center" justify="space-between" gap="middle" wrap style={{ padding: 16 }}>
           <Space size={12} wrap>
             <Input
               allowClear
@@ -253,12 +256,12 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
               placeholder="Search league name or code…"
               value={searchText}
               onChange={(event) => setSearchText(event.target.value)}
-              className="league-search"
+              className={styles.search}
             />
             <Select
               value={status}
               onChange={setStatus}
-              className="status-filter"
+              className={styles.filter}
               options={[
                 { label: 'All statuses', value: 'all' },
                 { label: 'Active', value: 'active' },
@@ -268,11 +271,11 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
           </Space>
 
           <Space size={12} wrap>
-            <span className={`dirty-indicator ${changedLeagueKeys.size ? 'is-dirty' : ''}`}>
+            <Text type={changedLeagueKeys.size ? 'warning' : 'secondary'}>
               {changedLeagueKeys.size
                 ? `${changedLeagueKeys.size} unsaved ${changedLeagueKeys.size === 1 ? 'league' : 'leagues'}`
                 : 'No unsaved changes'}
-            </span>
+            </Text>
             <Button
               icon={<ReloadOutlined />}
               disabled={!changedLeagueKeys.size || saving}
@@ -290,12 +293,13 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
               Save Changes
             </Button>
           </Space>
-        </div>
+        </Flex>
 
         <Table
           rowKey="_key"
           columns={columns}
           dataSource={filteredLeagues}
+          size="middle"
           pagination={{
             defaultPageSize: 10,
             showSizeChanger: false,
@@ -304,7 +308,7 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
           scroll={{ x: 1000 }}
           locale={{ emptyText: 'No leagues match the current filters.' }}
         />
-      </div>
-    </div>
+      </Card>
+    </Flex>
   );
 }

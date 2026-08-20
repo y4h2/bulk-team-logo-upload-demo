@@ -2,9 +2,10 @@
 
 import React, { useMemo, useState } from 'react';
 import { SearchOutlined } from '@ant-design/icons';
-import { Card, Input, Select, Space, Table, Tabs, Tag, Typography } from 'antd';
+import { Card, Flex, Input, Select, Space, Table, Tabs, Tag, Typography } from 'antd';
 import AlertConfiguration from './AlertConfiguration';
 import { mockAlerts, mockLeagues } from './mockAlerts';
+import styles from './alerts.module.css';
 
 const { Text, Title } = Typography;
 
@@ -42,8 +43,8 @@ function AlertsTable({ alerts }) {
   ];
 
   return (
-    <Card className="alerts-card" styles={{ body: { padding: 0 } }}>
-      <div className="alerts-toolbar">
+    <Card styles={{ body: { padding: 0 } }}>
+      <Flex align="center" justify="space-between" gap="middle" wrap style={{ padding: 16 }}>
         <Space size={12} wrap>
           <Input
             allowClear
@@ -51,12 +52,12 @@ function AlertsTable({ alerts }) {
             placeholder="Search alerts…"
             value={searchText}
             onChange={(event) => setSearchText(event.target.value)}
-            className="alert-search"
+            className={styles.search}
           />
           <Select
             value={status}
             onChange={setStatus}
-            className="alert-status-filter"
+            className={styles.filter}
             options={[
               { label: 'All statuses', value: 'all' },
               { label: 'Open', value: 'Open' },
@@ -65,12 +66,13 @@ function AlertsTable({ alerts }) {
             ]}
           />
         </Space>
-      </div>
+      </Flex>
       <Table
         rowKey="id"
         columns={columns}
         dataSource={filteredAlerts}
         pagination={false}
+        size="middle"
         scroll={{ x: 850 }}
       />
     </Card>
@@ -92,12 +94,18 @@ export default function AlertsPage({ initialAlerts = mockAlerts, leagues = mockL
   ];
 
   return (
-    <main className="alerts-page">
-      <div className="page-heading">
-        <Title level={2}>Alerts</Title>
-        <Text type="secondary">Monitor operational alerts and configure league-level bypasses.</Text>
+    <main className={styles.page}>
+      <div className={styles.content}>
+        <Flex vertical gap="small">
+          <div>
+            <Title level={2} style={{ marginBottom: 0 }}>Alerts</Title>
+            <Text type="secondary">
+              Monitor operational alerts and configure league-level bypasses.
+            </Text>
+          </div>
+          <Tabs defaultActiveKey="alerts" items={tabItems} />
+        </Flex>
       </div>
-      <Tabs defaultActiveKey="alerts" items={tabItems} className="page-tabs" />
     </main>
   );
 }

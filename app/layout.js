@@ -1,5 +1,4 @@
 import 'antd/dist/reset.css';
-import './globals.css';
 import Providers from './providers';
 
 export const metadata = {

@@ -10,6 +10,7 @@ import {
 import {
   Alert,
   App as AntApp,
+  Avatar,
   Button,
   Card,
   Flex,
@@ -188,15 +189,29 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
     {
       title: 'LEAGUE',
       key: 'league',
-      width: 300,
-      sorter: (a, b) => a.league_display_name.localeCompare(b.league_display_name),
-      render: (_, league) => <Text strong>{league.league_display_name}</Text>,
+      width: 170,
+      sorter: (a, b) => a.league_be_code.localeCompare(b.league_be_code),
+      render: (_, league) => (
+        <Space size={10}>
+          <Avatar
+            shape="square"
+            size={32}
+            src={league.league_logo || undefined}
+            alt={`${league.league_be_code} logo`}
+            style={{ backgroundColor: league.league_logo ? '#fff' : '#1677ff' }}
+          >
+            {league.league_be_code.slice(0, 2)}
+          </Avatar>
+          <Text strong>{league.league_be_code}</Text>
+        </Space>
+      ),
     },
     {
-      title: 'LEAGUE CODE',
-      key: 'code',
-      width: 150,
-      render: (_, league) => <Text code>{league.league_be_code}</Text>,
+      title: 'LEAGUE NAME',
+      key: 'name',
+      width: 300,
+      sorter: (a, b) => a.league_display_name.localeCompare(b.league_display_name),
+      render: (_, league) => league.league_display_name,
     },
     {
       title: 'STATUS',

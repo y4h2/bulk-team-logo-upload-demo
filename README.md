@@ -1,6 +1,6 @@
-# Bulk Team Logo Upload — Next.js 14 Demo
+# Alerts Configuration + Bulk Team Logo Upload — Next.js 14 Demo
 
-A runnable Next.js `14.2.25` + React + Ant Design `5.24.9` demo for managing team logo variants in a modal. It uses the App Router, plain JavaScript, and is compatible with a Webpack `5.70.0` host project.
+A runnable Next.js `14.2.25` + React + Ant Design `5.24.9` demo. The landing page demonstrates alert monitoring and league-level bypass configuration. The original Bulk Team Logo Upload implementation remains in `src/App.jsx` as the visual and component-pattern reference.
 
 ## Run locally
 
@@ -20,7 +20,19 @@ npm run build
 npm start
 ```
 
-## Demo behavior
+## Alerts demo behavior
+
+- Page-level **Alerts** and **Configuration** tabs.
+- Existing-style alert search, status filter, and table in the Alerts tab.
+- `league_be_code` search and dynamic `sport_type` filtering.
+- Extensible league × alert-type matrix using Ant Design switches.
+- Switch ON explicitly means that alert generation is bypassed.
+- Dirty league count, reset, and save controls.
+- `null`, missing, object, array, and JSON-string `alert_config` values are normalized once at the component boundary.
+- League fixtures follow the real `sn_league_id`, `league_display_name`, `league_short_name`, `league_be_code`, and `active` field names.
+- Save computes only changed leagues. Because this demo has no update API, it logs the intended payload at a scoped TODO instead of inventing an endpoint.
+
+## Bulk logo demo behavior
 
 - Search by team name or three-letter team code.
 - Click any Legacy, Light, or Dark logo cell to open that team's inline editor.
@@ -109,8 +121,12 @@ app/
   page.js         # Server-rendered route entry
   providers.js    # Ant Design client providers and SSR style registry
 src/
-  App.jsx         # Interactive client component
-  modalStyles.js  # CSS string injected directly by the modal
+  AlertConfiguration.jsx # Reusable league alert-bypass editor
+  AlertsPage.jsx  # Alerts page tabs and demo alert table
+  alerts.module.css # Minimal responsive page/control sizing
+  App.jsx         # Original bulk logo uploader component
+  modalStyles.js  # Bulk uploader CSS string
+  mockAlerts.js   # API-shaped alert and league fixtures
   mockTeams.js    # Mock API-shaped team data
 ```
 

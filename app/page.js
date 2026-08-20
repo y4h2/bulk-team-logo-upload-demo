@@ -1,5 +1,5 @@
-import BulkTeamLogoUploadDemo from '../src/App';
+import AlertsPage from '../src/AlertsPage';
 
 export default function Page() {
-  return <BulkTeamLogoUploadDemo />;
+  return <AlertsPage />;
 }

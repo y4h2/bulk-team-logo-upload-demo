@@ -2,8 +2,8 @@ import 'antd/dist/reset.css';
 import Providers from './providers';
 
 export const metadata = {
-  title: 'Bulk Team Logo Upload',
-  description: 'A Next.js 14 and Ant Design demo for managing team logo variants.',
+  title: 'Alerts Configuration',
+  description: 'A Next.js and Ant Design demo for alert monitoring and league-level alert bypass configuration.',
 };
 
 export default function RootLayout({ children }) {

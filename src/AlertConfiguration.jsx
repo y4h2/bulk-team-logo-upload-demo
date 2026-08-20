@@ -134,9 +134,7 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
 
     return draftLeagues.filter((league) => {
       const matchesSearch = !keyword
-        || league.league_display_name.toLowerCase().includes(keyword)
-        || league.league_be_code.toLowerCase().includes(keyword)
-        || league.league_short_name.toLowerCase().includes(keyword);
+        || league.league_be_code.toLowerCase().includes(keyword);
       const matchesSportType = sportType === 'all' || league.sport_type === sportType;
 
       return matchesSearch && matchesSportType;
@@ -268,7 +266,7 @@ export default function AlertConfiguration({ leagues = [], onSave }) {
             <Input
               allowClear
               prefix={<SearchOutlined />}
-              placeholder="Search league name or code…"
+              placeholder="Search league code…"
               value={searchText}
               onChange={(event) => setSearchText(event.target.value)}
               className={styles.search}

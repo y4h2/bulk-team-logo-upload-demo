@@ -24,7 +24,7 @@ npm start
 
 - Page-level **Alerts** and **Configuration** tabs.
 - Existing-style alert search, status filter, and table in the Alerts tab.
-- League name/code search and dynamic `sport_type` filtering.
+- `league_be_code` search and dynamic `sport_type` filtering.
 - Extensible league × alert-type matrix using Ant Design switches.
 - Switch ON explicitly means that alert generation is bypassed.
 - Dirty league count, reset, and save controls.
